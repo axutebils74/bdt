@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+    <style>
+        /* 外部容器 */
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .comment-container {
+            /* width: 400px; */
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+
+        /* 评论列表 */
+        .comment-list {
+            list-style-type: none;
+            word-wrap: break-word;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* 单个评论项 */
+        .comment-item {
+            margin-bottom: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            align-items: center;
+        }
+
+        /* 评论者头像 */
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            vertical-align: middle
+        }
+
+        /* 评论者和内容 */
+        .comment-timer {
+            color: #99a2aa;
+
+        }
+
+        .comment-author {
+            line-height: 40px;
+            font-weight: bold;
+            vertical-align: middle
+        }
+
+        /* 回复按钮 */
+        .comment-reply {
+            margin-left: auto;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        /* 回复框 */
+        .comment-reply-box {
+            display: none;
+            margin-top: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+
+        /* 展开回复按钮 */
+        .comment-expand-reply {
+            margin-top: 10px;
+            color: #4caf50;
+            font-size: 14px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="comment-container" id="comment-container">
+    </div>
+    <script>
+        var bdtalk = function bdtalk(baseUrl, fn, timeout) {
+            var timeout = timeout || 3000;
+            timeout += Math.random() * 2000;
+            var freeCors = ["https://api.allorigins.win/raw?url=", "https://www.crossorigin.me/", "https://cors-proxy.htmldriven.com/?url=", "https://thingproxy.freeboard.io/fetch/", "https://cors-anywhere.herokuapp.com/", "http://www.whateverorigin.org/get?url=", "https://api.allorigins.win/raw?url=", "https://api.codetabs.com/v1/proxy?quest="];
+            function resend() {
+                freeCors.shift();
+                send();
+            }
+            ;
+            function send() {
+                if (freeCors.length == 0) {
+                    if (timeout >= 20000) throw new Error();
+                    return bdtalk(n, fn);
+                }
+                var xhr = new XMLHttpRequest();
+                xhr.timeout = timeout;
+                xhr.open("GET", freeCors[0] + baseUrl);
+                xhr.onload = function () {
+                    xhr.status >= 400 ? resend() : fn && fn(JSON.parse(xhr.response));
+                };
+                xhr.send();
+                xhr.onabort = xhr.onerror = xhr.ontimeout = resend;
+            }
+            if (localStorage['bdtalkHistory']) {
+                freeCors.unshift(localStorage['bdtalkHistory']);
+            }
+            send();
+        };
+        var video =location.hash.slice(1) ||"BV1xx411c7mD" ; // av2
+        var type = 1; // 视频类型
+        var mode = 1; // 按时间排序
+        // var next = 0;
+        // var access_key = 'xxx'; 
+        var space_history = "https://api.bilibili.com/x/v2/reply/main?oid=".concat(video, "&type=").concat(type, "&mode=").concat(mode);
+        // var space_history = `https://api.bilibili.com/x/v2/reply/main?oid=${video}&type=${type}&mode=${mode}&access_key=${access_key}&next=${page}`
+        var sh = encodeURIComponent(space_history);
+        // var getMessage = bdtalk.bind(this, sh);
+        function show(e) {
+            var replies = e.data.replies || [];
+            replies = replies.map(function (e) {
+                return {
+                    name: e.member.uname,
+                    content: e.content.message,
+                    avatar: e.member.avatar,
+                    time: e.reply_control.time_desc,
+                    id: e.oid,
+                    rpid: e.replies && e.rcount > 3 ? e.rpid : null,
+                    replies: e.replies && e.replies.map(function (e) {
+                        return {
+                            name: e.member.uname,
+                            content: e.content.message,
+                            avatar: e.member.avatar,
+                            time: e.reply_control.time_desc
+                        };
+                    })
+                };
+            });
+            console.log(replies);
+            function make(a, b, c) {
+                var e = document.createElement(a);
+                e.className = b;
+                if (c != undefined) {
+                    if (a == 'img') {
+                        e.src = c;
+                    } else if (a == 'span') {
+                        e.innerText = c;
+                    } else if (a == 'div') {
+                        e.innerHTML = c;
+                    }
+                }
+                return e;
+            }
+            function builditem(e) {
+                return "<div class='reply-item'><img class='comment-avatar' src='".concat(e.avatar, "' style='width:18px;height:18px '><span class='comment-author'>").concat(e.name, "</span>:<div class='comment-text'>").concat(e.content, "</div><span class='comment-timer'>").concat(e.time, "</span></div>");
+            }
+            var div = document.getElementById('comment-container');
+            var ul = make('ul', "comment-list");
+            replies.forEach(function (e) {
+                var li = make("li", "comment-item");
+                var img = make("img", "comment-avatar", e.avatar);
+                var div = make("div", "comment-content");
+                var span = make("span", "comment-author", e.name);
+                var div1 = make('div', "comment-text", e.content);
+                var div2 = make('div', "comment-replies", e.replies && e.replies.map(function (e) {
+                    return builditem(e);
+                }).join(""));
+                li.appendChild(img);
+                li.appendChild(span);
+                li.appendChild(div);
+                div.appendChild(div1);
+                div.appendChild(make('span', 'comment-timer', e.time));
+                div.appendChild(div2);
+                if (e.rpid) {
+                    var div3 = make('div', "comment-expand-reply", "展开回复");
+                    var oid = e.id;
+                    var rpid = e.rpid;
+                    // div3.setAttribute('data-1',oid);
+                    // div3.setAttribute('data-2',rpid);
+                    div.appendChild(div3);
+                    div3.onclick = function () {
+                        div3.hidden = 'hidden';
+                        var baseurl = "https://api.bilibili.com/x/v2/reply/reply?oid=".concat(oid, "&type=1&root=").concat(rpid);
+                        var sh1 = encodeURIComponent(baseurl);
+                        try {
+                            bdtalk(sh1, function (e) {
+                                var replies = e.data.replies || [];
+                                replies = replies.map(function (e) {
+                                    return {
+                                        name: e.member.uname,
+                                        content: e.content.message,
+                                        avatar: e.member.avatar,
+                                        time: e.reply_control.time_desc
+                                    };
+                                });
+                                div2.innerHTML = replies && replies.map(function (e) {
+                                    return builditem(e);
+                                }).join("");
+                            });
+                        } catch (error) {
+                            div3.hidden = '';
+                        }
+                    };
+                }
+                ul.appendChild(li);
+            });
+            div.innerHTML = '';
+            div.appendChild(ul);
+        }
+        bdtalk(sh,show);
+    </script>
+</body>
+
+</html>
