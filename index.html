@@ -89,7 +89,7 @@
     </div>
     <script>
         var bdtalk = function bdtalk(baseUrl, fn, timeout) {
-            var timeout = timeout || 3000;
+            var timeout = timeout || 1000;
             timeout += Math.random() * 2000;
             var freeCors = ["https://api.allorigins.win/raw?url=", "https://www.crossorigin.me/", "https://cors-proxy.htmldriven.com/?url=", "https://thingproxy.freeboard.io/fetch/", "https://cors-anywhere.herokuapp.com/", "http://www.whateverorigin.org/get?url=", "https://api.allorigins.win/raw?url=", "https://api.codetabs.com/v1/proxy?quest="];
             function resend() {
@@ -106,7 +106,7 @@
                 xhr.timeout = timeout;
                 xhr.open("GET", freeCors[0] + baseUrl);
                 xhr.onload = function () {
-                    xhr.status >= 400 ? resend() : fn && fn(JSON.parse(xhr.response));
+                    xhr.status >= 400 ? resend() :(localStorage['bdtalkHistory'] =  freeCors[0],fn && fn(JSON.parse(xhr.response)));
                 };
                 xhr.send();
                 xhr.onabort = xhr.onerror = xhr.ontimeout = resend;
